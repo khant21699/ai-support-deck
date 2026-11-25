@@ -1,8 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import Badge from "@/components/Badge";
+import { Plain, PriorityMark, StatusChip } from "@/components/Badge";
+import { AlertIcon, ArrowLeftIcon, CheckIcon, StrikeIcon, SwapIcon } from "@/components/Icons";
 import { api, post } from "@/lib/api";
+import { dateTime } from "@/lib/format";
 import type { Draft, Ticket } from "@/lib/types";
 
 // While the AI works we check the ticket again and again. Each check waits a bit longer than the
@@ -10,6 +13,20 @@ import type { Draft, Ticket } from "@/lib/types";
 const POLL_FIRST_DELAY_MS = 2000;
 const POLL_MAX_DELAY_MS = 10000;
 const POLL_GIVE_UP_MS = 2 * 60 * 1000;
+
+/** Show citation markers like [E1] as small superscript footnote numbers. */
+function withMarkers(text: string) {
+  return text.split(/(\[E\d+\])/g).map((part, i) => {
+    const marker = part.match(/^\[E(\d+)\]$/);
+    return marker ? (
+      <sup key={i} className="ml-0.5 text-[11px] font-bold text-pencil">
+        {marker[1]}
+      </sup>
+    ) : (
+      part
+    );
+  });
+}
 
 export default function TicketPage({ params }: { params: { id: string } }) {
   const { id } = params;
@@ -78,93 +95,202 @@ export default function TicketPage({ params }: { params: { id: string } }) {
     }
   }
 
-  if (!ticket) return <p className="text-slate-500">{error ?? "Loading…"}</p>;
+  if (!ticket) {
+    return error ? (
+      <p role="alert" className="alert-error">{error}</p>
+    ) : (
+      <div role="status" className="space-y-3">
+        <span className="sr-only">Loading ticket</span>
+        <div className="h-8 w-2/3 rounded bg-rule motion-safe:animate-pulse" />
+        <div className="h-4 w-1/3 rounded bg-rule/70 motion-safe:animate-pulse" />
+      </div>
+    );
+  }
 
   const unchanged = pending ? text.trim() === pending.body.trim() : false;
+  const waiting = ticket.ai_status === "pending" && !gaveUp;
+  const triaged = Boolean(ticket.priority || ticket.category || ticket.sentiment);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
-      <section className="space-y-4">
-        <div>
-          <h1 className="text-2xl font-semibold">{ticket.subject}</h1>
-          <p className="text-sm text-slate-500">{ticket.customer_email} · {new Date(ticket.created_at).toLocaleString()}</p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            <Badge value={ticket.status} /><Badge value={ticket.category} /><Badge value={ticket.priority} /><Badge value={ticket.sentiment} />
-          </div>
-        </div>
+    <div>
+      <Link href="/inbox" className="inline-flex items-center gap-1.5 rounded text-sm font-semibold text-muted hover:text-ink">
+        <ArrowLeftIcon size={16} />
+        Inbox
+      </Link>
 
-        <div className="space-y-3">
-          {ticket.messages.map((m) => (
-            <div key={m.id} className={`card ${m.author_type === "agent" ? "border-blue-200 bg-blue-50" : ""}`}>
-              <div className="mb-1 text-xs font-medium uppercase text-slate-500">{m.author_type}</div>
-              <p className="whitespace-pre-wrap text-sm">{m.body}</p>
+      <div className="mt-4 grid gap-8 lg:grid-cols-[minmax(0,1fr)_344px] lg:items-start xl:grid-cols-[minmax(0,1fr)_400px]">
+        <section aria-label="Conversation">
+          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">{ticket.subject}</h1>
+          <p className="mt-1.5 text-muted">
+            {ticket.customer_email} &middot; {dateTime(ticket.created_at)}
+          </p>
+
+          <dl className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-[13px]">
+            <div className="flex items-center gap-2">
+              <dt className="sr-only">Status</dt>
+              <dd><StatusChip value={ticket.status} /></dd>
             </div>
-          ))}
-        </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-      </section>
+            {triaged ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <dt className="text-muted">Priority</dt>
+                  <dd><PriorityMark value={ticket.priority} /></dd>
+                </div>
+                <div className="flex items-center gap-2">
+                  <dt className="text-muted">Category</dt>
+                  <dd><Plain value={ticket.category} /></dd>
+                </div>
+                <div className="flex items-center gap-2">
+                  <dt className="text-muted">Mood</dt>
+                  <dd><Plain value={ticket.sentiment} tone="negative" /></dd>
+                </div>
+              </>
+            ) : (
+              <div className="text-muted">{ticket.ai_status === "failed" ? "Not triaged" : "Awaiting triage"}</div>
+            )}
+          </dl>
 
-      <aside className="space-y-3">
-        <div className="card space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold">AI draft</h2>
-            <button className="btn-ghost" disabled={busy || (ticket.ai_status === "pending" && !gaveUp)}
-              onClick={() => act(async () => {
-                await post(`/tickets/${id}/draft/regenerate`);
-                setPollRound((n) => n + 1); // start checking again, even if the status was already "pending"
-              })}>Regenerate</button>
-          </div>
-
-          {ticket.ai_status === "pending" && !gaveUp && <p className="text-sm text-slate-500">Triaging and drafting…</p>}
-          {ticket.ai_status === "pending" && gaveUp && (
-            <p className="rounded bg-amber-50 p-2 text-xs text-amber-800">
-              This is taking longer than usual. The AI model may be slow, rate-limited, or the API may have restarted.
-              Click Regenerate to try again.
-            </p>
+          <ol className="mt-6 divide-y divide-rule border-y border-rule">
+            {ticket.messages.map((m) => (
+              <li key={m.id} className={`px-4 py-5 ${m.author_type === "agent" ? "bg-pencil-wash/40" : ""}`}>
+                <div className="flex items-baseline justify-between gap-3">
+                  <p className="text-[13px] font-semibold">{m.author_type === "agent" ? "Agent reply" : "Customer"}</p>
+                  <time dateTime={m.created_at} className="text-[13px] text-muted">{dateTime(m.created_at)}</time>
+                </div>
+                <p className="mt-2 whitespace-pre-wrap font-serif text-[17px] leading-relaxed">{withMarkers(m.body)}</p>
+              </li>
+            ))}
+          </ol>
+          {error && (
+            <p role="alert" className="alert-error mt-4">{error}</p>
           )}
-          {ticket.ai_status === "failed" && <p className="text-sm text-red-600">AI processing failed. Reply manually or regenerate.</p>}
+        </section>
 
-          {pending ? (
-            <>
-              {!pending.grounded && (
-                <p className="rounded bg-amber-50 p-2 text-xs text-amber-800">
-                  No confident answer found in the knowledge base. Review carefully or reply manually.
+        <aside aria-label="AI draft" className="space-y-4 lg:sticky lg:top-6">
+          <div key={pending?.id ?? "no-draft"} className="panel shadow-slip motion-safe:animate-land">
+            <div className="flex items-start justify-between gap-3 border-b border-rule px-4 py-3">
+              <div>
+                <h2 className="font-semibold">AI draft</h2>
+                <p className="text-[13px] text-muted">
+                  {pending ? "A proof for your sign-off" : ticket.status === "resolved" ? "This ticket is resolved" : "No draft waiting"}
+                </p>
+              </div>
+              <button
+                className="btn-quiet"
+                disabled={busy || waiting}
+                onClick={() =>
+                  act(async () => {
+                    await post(`/tickets/${id}/draft/regenerate`);
+                    setPollRound((n) => n + 1); // start checking again, even if the status was already "pending"
+                  })
+                }
+              >
+                <SwapIcon size={15} />
+                Regenerate
+              </button>
+            </div>
+
+            <div className="space-y-4 p-4 empty:hidden" aria-live="polite">
+              {waiting && (
+                <div>
+                  <p className="text-sm font-semibold">Triaging and drafting&hellip;</p>
+                  <div className="mt-3 space-y-2" aria-hidden="true">
+                    <div className="h-3 w-full rounded bg-rule motion-safe:animate-pulse" />
+                    <div className="h-3 w-[92%] rounded bg-rule motion-safe:animate-pulse" />
+                    <div className="h-3 w-[64%] rounded bg-rule motion-safe:animate-pulse" />
+                  </div>
+                </div>
+              )}
+
+              {ticket.ai_status === "pending" && gaveUp && (
+                <p className="alert-caution">
+                  This is taking longer than usual. The AI model may be slow or rate-limited, or the API may have restarted.
+                  Use Regenerate to try again.
                 </p>
               )}
-              <textarea className="input min-h-[180px]" value={text} onChange={(e) => setText(e.target.value)} />
-              {pending.citations.length > 0 && (
-                <ul className="space-y-1 text-xs text-slate-600">
-                  {pending.citations.map((c) => (
-                    <li key={c.marker}><b>[{c.marker}]</b> {c.article_title}: {c.snippet}</li>
-                  ))}
-                </ul>
-              )}
-              <div className="flex flex-wrap gap-2">
-                {unchanged ? (
-                  <button className="btn-primary" disabled={busy} onClick={() => act(() => post(`/drafts/${pending.id}/approve`))}>
-                    Approve and send
-                  </button>
-                ) : (
-                  <button className="btn-primary" disabled={busy || !text.trim()}
-                    onClick={() => act(() => post(`/drafts/${pending.id}/edit`, { final_body: text }))}>
-                    Send edited reply
-                  </button>
-                )}
-                <button className="btn-danger" disabled={busy} onClick={() => act(() => post(`/drafts/${pending.id}/reject`))}>
-                  Reject
-                </button>
-              </div>
-              <p className="text-xs text-slate-400">Nothing is sent until you approve. {pending.model && `Model: ${pending.model}`}</p>
-            </>
-          ) : (
-            ticket.ai_status === "done" && <p className="text-sm text-slate-500">No pending draft.</p>
-          )}
-        </div>
 
-        {ticket.status !== "resolved" && !pending && (
-          <ManualReply onSend={(body) => act(() => post(`/tickets/${id}/messages`, { body }))} busy={busy} />
-        )}
-      </aside>
+              {ticket.ai_status === "failed" && (
+                <p className="alert-error flex items-start gap-2">
+                  <AlertIcon size={16} className="mt-0.5 shrink-0" />
+                  <span>The AI step failed. Write a reply yourself, or try Regenerate.</span>
+                </p>
+              )}
+
+              {pending && (
+                <>
+                  {!pending.grounded && (
+                    <p className="alert-caution flex items-start gap-2">
+                      <AlertIcon size={16} className="mt-0.5 shrink-0" />
+                      <span>
+                        <b>No answer found in the knowledge base.</b> This is a holding reply. Edit it or write your own.
+                      </span>
+                    </p>
+                  )}
+
+                  <div>
+                    <label htmlFor="draft" className="sr-only">Draft reply</label>
+                    <textarea
+                      id="draft"
+                      className="field min-h-[200px] font-serif text-[17px] leading-relaxed max-md:text-[17px]"
+                      value={text}
+                      onChange={(e) => setText(e.target.value)}
+                    />
+                  </div>
+
+                  {pending.citations.length > 0 && (
+                    <div>
+                      <h3 className="text-[13px] font-semibold">Sources</h3>
+                      <ol className="mt-2 space-y-2 border-t border-rule pt-3">
+                        {pending.citations.map((c) => (
+                          <li key={c.marker} className="grid grid-cols-[1.75rem_1fr] gap-x-1 text-[13px] leading-5 text-muted">
+                            <span className="font-bold text-pencil">{c.marker}</span>
+                            <span>
+                              <span className="font-semibold text-ink">{c.article_title}:</span> {c.snippet}
+                            </span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {pending && (
+              <div className="rounded-b-md border-t border-rule bg-paper/60 px-4 py-3">
+                <p className="text-[13px] text-muted">
+                  {unchanged ? "Sends the AI draft exactly as written." : "Sends your edited version."} Nothing is sent until you choose.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {unchanged ? (
+                    <button className="btn-primary" disabled={busy} onClick={() => act(() => post(`/drafts/${pending.id}/approve`))}>
+                      <CheckIcon size={16} />
+                      Approve and send
+                    </button>
+                  ) : (
+                    <button
+                      className="btn-primary"
+                      disabled={busy || !text.trim()}
+                      onClick={() => act(() => post(`/drafts/${pending.id}/edit`, { final_body: text }))}
+                    >
+                      <CheckIcon size={16} />
+                      Send edited reply
+                    </button>
+                  )}
+                  <button className="btn-reject" disabled={busy} onClick={() => act(() => post(`/drafts/${pending.id}/reject`))}>
+                    <StrikeIcon size={16} />
+                    Reject draft
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {ticket.status !== "resolved" && !pending && (
+            <ManualReply onSend={(body) => act(() => post(`/tickets/${id}/messages`, { body }))} busy={busy} />
+          )}
+        </aside>
+      </div>
     </div>
   );
 }
@@ -172,10 +298,24 @@ export default function TicketPage({ params }: { params: { id: string } }) {
 function ManualReply({ onSend, busy }: { onSend: (body: string) => void; busy: boolean }) {
   const [body, setBody] = useState("");
   return (
-    <div className="card space-y-2">
-      <h2 className="font-semibold">Manual reply</h2>
-      <textarea className="input min-h-[100px]" value={body} onChange={(e) => setBody(e.target.value)} />
-      <button className="btn-primary" disabled={busy || !body.trim()} onClick={() => { onSend(body); setBody(""); }}>Send</button>
+    <div className="panel p-4">
+      <label htmlFor="manual" className="font-semibold">Reply yourself</label>
+      <textarea
+        id="manual"
+        className="field mt-2 min-h-[120px] font-serif text-[17px] leading-relaxed max-md:text-[17px]"
+        value={body}
+        onChange={(e) => setBody(e.target.value)}
+      />
+      <button
+        className="btn-primary mt-3"
+        disabled={busy || !body.trim()}
+        onClick={() => {
+          onSend(body);
+          setBody("");
+        }}
+      >
+        Send reply
+      </button>
     </div>
   );
 }

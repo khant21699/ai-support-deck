@@ -2,14 +2,98 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer components {
-  .card { @apply rounded-lg border border-slate-200 bg-white p-4 shadow-sm; }
-  .btn { @apply inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium transition disabled:opacity-50; }
-  .btn-primary { @apply btn bg-slate-900 text-white hover:bg-slate-700; }
-  .btn-ghost { @apply btn border border-slate-300 bg-white text-slate-800 hover:bg-slate-50; }
-  .btn-danger { @apply btn border border-red-300 bg-white text-red-700 hover:bg-red-50; }
-  .input { @apply w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-500; }
-  .label { @apply mb-1 block text-sm font-medium text-slate-700; }
+@layer base {
+  html {
+    color-scheme: light;
+    scrollbar-color: #a7a69b transparent;
+    scrollbar-width: thin;
+  }
+  body {
+    @apply bg-paper font-sans text-[15px] leading-6 text-ink antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply text-balance;
+  }
+  a {
+    text-underline-offset: 3px;
+  }
+
+  /* Parts of the browser that would otherwise ship with default styling. */
+  ::selection {
+    @apply bg-pencil text-white;
+  }
+  :focus-visible {
+    @apply outline outline-2 outline-offset-2 outline-pencil;
+  }
+  input,
+  textarea,
+  select {
+    caret-color: #2742d1;
+    accent-color: #2742d1;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #bdbcb2;
+    border: 2px solid #f0f0eb;
+    border-radius: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
 }
 
-body { @apply bg-slate-50 text-slate-900; }
+@layer components {
+  /* Buttons: 36px on desktop, 44px touch targets on phones. */
+  .btn {
+    @apply inline-flex h-9 items-center justify-center gap-2 rounded px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 max-md:h-11;
+  }
+  .btn-primary {
+    @apply btn bg-pencil text-white hover:bg-pencil-dark;
+  }
+  .btn-secondary {
+    @apply btn border border-rule-strong bg-slip text-ink hover:bg-paper;
+  }
+  .btn-reject {
+    @apply btn border border-proof/40 bg-slip text-proof hover:bg-proof-wash;
+  }
+  .btn-quiet {
+    @apply inline-flex items-center gap-1.5 rounded px-1.5 py-1 text-sm font-semibold text-muted transition-colors hover:text-ink disabled:cursor-not-allowed disabled:opacity-50 max-md:min-h-11 max-md:px-2;
+  }
+
+  /* Form fields. 16px on phones so iOS does not zoom the page. */
+  .field {
+    @apply block w-full rounded border border-rule-strong bg-slip px-3 py-2 text-[15px] text-ink placeholder:text-muted max-md:min-h-11 max-md:text-base;
+  }
+  .field:focus {
+    @apply border-pencil;
+  }
+  select.field {
+    @apply appearance-none pr-9;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%235A5A54' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M4 6l4 4 4-4'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 14px;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-semibold;
+  }
+  .hint {
+    @apply mt-1.5 text-[13px] text-muted;
+  }
+
+  /* A proof slip: the surface for anything an agent reads or decides on. */
+  .panel {
+    @apply rounded-md border border-rule bg-slip;
+  }
+  .alert-error {
+    @apply rounded border border-proof/30 bg-proof-wash px-3 py-2 text-sm text-proof;
+  }
+  .alert-caution {
+    @apply rounded border border-caution/25 bg-caution-wash px-3 py-2 text-sm text-caution;
+  }
+}

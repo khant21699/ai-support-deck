@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-25T00:00:00Z",
+  "title": "Design System: Support Desk",
+  "extensions": {
+    "colorMeta": {
+      "paper": { "role": "neutral", "displayName": "Newsprint Paper", "canonical": "#F0F0EB", "tonalRamp": ["#2B2B27", "#4A4A44", "#6C6C65", "#8E8E86", "#B0B0A8", "#CBCBC3", "#E0E0DA", "#F0F0EB"] },
+      "slip": { "role": "neutral", "displayName": "Proof Slip", "canonical": "#FBFBF9", "tonalRamp": ["#2E2E2B", "#51514D", "#75756F", "#9A9A94", "#BDBDB8", "#D8D8D4", "#EBEBE8", "#FBFBF9"] },
+      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "#181816", "tonalRamp": ["#181816", "#2C2C29", "#41413D", "#575752", "#6F6F69", "#8A8A84", "#A8A8A2", "#C8C8C3"] },
+      "muted": { "role": "neutral", "displayName": "Muted Gray", "canonical": "#5A5A54", "tonalRamp": ["#2A2A27", "#3C3C38", "#4A4A45", "#5A5A54", "#77776F", "#989891", "#BABAB4", "#DCDCD7"] },
+      "rule": { "role": "neutral", "displayName": "Hairline Rule", "canonical": "#D4D3CA", "tonalRamp": ["#5E5D55", "#78776E", "#929189", "#ACABA2", "#BFBEB5", "#D4D3CA", "#E4E3DD", "#F1F1ED"] },
+      "rule-strong": { "role": "neutral", "displayName": "Strong Rule", "canonical": "#A7A69B", "tonalRamp": ["#46453F", "#5E5D55", "#78776E", "#8F8E84", "#A7A69B", "#BDBCB3", "#D3D2CB", "#E9E9E4"] },
+      "pencil": { "role": "primary", "displayName": "Editor's Blue Pencil", "canonical": "#2742D1", "tonalRamp": ["#0F1A5C", "#1B2FA0", "#2742D1", "#4A63E0", "#7385E8", "#9DAAEF", "#C6CEF7", "#E4E8FA"] },
+      "pencil-dark": { "role": "primary", "displayName": "Pencil Deep", "canonical": "#1B2FA0", "tonalRamp": ["#0A1050", "#121F78", "#1B2FA0", "#2742D1", "#5A70DD", "#8C9BE8", "#BBC4F2", "#E4E8FA"] },
+      "pencil-wash": { "role": "primary", "displayName": "Pencil Wash", "canonical": "#E4E8FA", "tonalRamp": ["#2742D1", "#5068DB", "#7A8DE4", "#A0AEEB", "#BFC9F1", "#D2D9F6", "#E4E8FA", "#F3F5FD"] },
+      "proof": { "role": "secondary", "displayName": "Proof Red", "canonical": "#BF2F26", "tonalRamp": ["#4A0F0B", "#7A1E18", "#BF2F26", "#D4584F", "#E07F78", "#EBA6A1", "#F5CDCA", "#F8E4E1"] },
+      "proof-wash": { "role": "secondary", "displayName": "Proof Wash", "canonical": "#F8E4E1", "tonalRamp": ["#BF2F26", "#CF5D55", "#DC827C", "#E8A8A3", "#F0C4C0", "#F5D5D2", "#F8E4E1", "#FCF2F1"] },
+      "caution": { "role": "secondary", "displayName": "Caution Amber", "canonical": "#7A5200", "tonalRamp": ["#2E1F00", "#4F3500", "#7A5200", "#A36D0A", "#C98F2E", "#E0B565", "#F0D79D", "#F6EBCB"] },
+      "caution-wash": { "role": "secondary", "displayName": "Caution Wash", "canonical": "#F6EBCB", "tonalRamp": ["#7A5200", "#A8822A", "#C9A650", "#DCC17F", "#E8D49F", "#F0E1B8", "#F6EBCB", "#FBF5E5"] },
+      "done": { "role": "secondary", "displayName": "Resolved Green", "canonical": "#1E6B45", "tonalRamp": ["#0A2D1C", "#13492D", "#1E6B45", "#3A8A62", "#62A883", "#8EC4A8", "#BADBCA", "#DFEFE5"] },
+      "done-wash": { "role": "secondary", "displayName": "Resolved Wash", "canonical": "#DFEFE5", "tonalRamp": ["#1E6B45", "#4A8A68", "#74A88B", "#9CC3A9", "#B9D6C7", "#CDE4D6", "#DFEFE5", "#F0F8F3"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Home headline only." },
+      "headline": { "displayName": "Headline", "purpose": "Page titles and the ticket subject." },
+      "title": { "displayName": "Title", "purpose": "Wordmark and small headings." },
+      "body": { "displayName": "Body", "purpose": "Default interface text and field input." },
+      "label": { "displayName": "Label", "purpose": "Metadata, hints, priority words, chips." },
+      "copy": { "displayName": "Copy", "purpose": "Serif for customer messages, AI drafts and copy textareas only." }
+    },
+    "shadows": [
+      { "name": "slip", "value": "0 1px 0 rgb(24 24 22 / 0.06), 0 12px 24px -16px rgb(24 24 22 / 0.35)", "purpose": "The single proof under review: AI draft panel and home specimen." }
+    ],
+    "motion": [
+      { "name": "land", "value": "300ms cubic-bezier(0.16, 1, 0.3, 1) both; from opacity 0, translateY(6px)", "purpose": "One-time entrance of the draft slip and home specimen; motion-safe only." },
+      { "name": "skeleton-pulse", "value": "Tailwind animate-pulse", "purpose": "Loading skeleton bars; motion-safe only." }
+    ],
+    "breakpoints": [
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Sign-off and other primary actions.",
+      "html": "<button class=\"ds-btn ds-btn-primary\">Sign off</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 16px;border-radius:3px;font-size:14px;font-weight:600;transition:background-color .15s,color .15s;cursor:pointer;font-family:inherit}.ds-btn-primary{background:#2742D1;color:#fff;border:0}.ds-btn-primary:hover{background:#1B2FA0}.ds-btn:focus-visible{outline:2px solid #2742D1;outline-offset:2px}.ds-btn:disabled{opacity:.5;cursor:not-allowed}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Neutral actions such as Agent login, Edit, Regenerate.",
+      "html": "<button class=\"ds-btn ds-btn-secondary\">Agent login</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 16px;border-radius:3px;font-size:14px;font-weight:600;transition:background-color .15s;cursor:pointer;font-family:inherit}.ds-btn-secondary{background:#FBFBF9;color:#181816;border:1px solid #A7A69B}.ds-btn-secondary:hover{background:#F0F0EB}.ds-btn:focus-visible{outline:2px solid #2742D1;outline-offset:2px}"
+    },
+    {
+      "name": "Reject Button",
+      "kind": "button",
+      "refersTo": "button-reject",
+      "description": "Reject a draft; the only red action.",
+      "html": "<button class=\"ds-btn ds-btn-reject\">Reject</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 16px;border-radius:3px;font-size:14px;font-weight:600;transition:background-color .15s;cursor:pointer;font-family:inherit}.ds-btn-reject{background:#FBFBF9;color:#BF2F26;border:1px solid rgb(191 47 38 / .4)}.ds-btn-reject:hover{background:#F8E4E1}.ds-btn:focus-visible{outline:2px solid #2742D1;outline-offset:2px}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "Slip-filled input with strong-rule border; focus turns the border blue.",
+      "html": "<label class=\"ds-label\" for=\"ds-f\">Subject</label><input id=\"ds-f\" class=\"ds-field\" placeholder=\"What is this about?\">",
+      "css": ".ds-label{display:block;margin-bottom:6px;font-size:14px;font-weight:600;color:#181816}.ds-field{display:block;width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #A7A69B;border-radius:3px;background:#FBFBF9;color:#181816;font-size:15px;font-family:inherit}.ds-field::placeholder{color:#5A5A54}.ds-field:focus{border-color:#2742D1;outline:2px solid #2742D1;outline-offset:2px}"
+    },
+    {
+      "name": "Status Chip",
+      "kind": "chip",
+      "refersTo": "chip-status-new",
+      "description": "Three rectangular chips: new, open, resolved.",
+      "html": "<span class=\"ds-chip ds-chip-new\">New</span> <span class=\"ds-chip ds-chip-open\">Open</span> <span class=\"ds-chip ds-chip-done\">Resolved</span>",
+      "css": ".ds-chip{display:inline-flex;align-items:center;padding:2px 8px;border-radius:3px;font-size:12px;font-weight:600}.ds-chip-new{background:#E4E8FA;color:#1B2FA0}.ds-chip-open{background:#F0F0EB;color:#181816;box-shadow:inset 0 0 0 1px #A7A69B}.ds-chip-done{background:#DFEFE5;color:#1E6B45}"
+    },
+    {
+      "name": "Priority Mark",
+      "kind": "custom",
+      "refersTo": "priority-mark",
+      "description": "Four ascending ticks plus the word; red when urgent.",
+      "html": "<span class=\"ds-pri\"><span class=\"ds-ticks\"><i style=\"height:7px\" class=\"on\"></i><i style=\"height:9px\" class=\"on\"></i><i style=\"height:11px\" class=\"on\"></i><i style=\"height:13px\" class=\"on\"></i></span>Urgent</span>",
+      "css": ".ds-pri{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#BF2F26}.ds-ticks{display:flex;align-items:flex-end;gap:2px}.ds-ticks i{display:block;width:3px;border-radius:1px;background:rgb(167 166 155 / .6)}.ds-ticks i.on{background:#BF2F26}"
+    },
+    {
+      "name": "Proof Slip Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Draft panel: serif copy, blue footnote marker, slip shadow.",
+      "html": "<div class=\"ds-panel\"><p class=\"ds-copy\">You can reset your password from Settings.<sup>1</sup></p></div>",
+      "css": ".ds-panel{background:#FBFBF9;border:1px solid #D4D3CA;border-radius:4px;padding:16px;box-shadow:0 1px 0 rgb(24 24 22 / .06),0 12px 24px -16px rgb(24 24 22 / .35)}.ds-copy{margin:0;font-family:'Source Serif 4',Georgia,serif;font-size:17px;line-height:1.625;color:#181816}.ds-copy sup{margin-left:2px;font-size:11px;font-weight:700;color:#2742D1}"
+    },
+    {
+      "name": "Rail Navigation",
+      "kind": "nav",
+      "refersTo": "nav-rail",
+      "description": "Left rail item, default and active.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-i ds-active\" href=\"#\">Inbox</a><a class=\"ds-nav-i\" href=\"#\">Knowledge base</a></nav>",
+      "css": ".ds-nav{display:flex;flex-direction:column;gap:4px;width:200px}.ds-nav-i{display:flex;align-items:center;padding:8px 12px;border-radius:3px;font-size:14px;color:#5A5A54;text-decoration:none;transition:background-color .15s,color .15s}.ds-nav-i:hover{background:#FBFBF9;color:#181816}.ds-active{background:#FBFBF9;color:#181816;font-weight:600;box-shadow:inset 0 0 0 1px #d4d3ca}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Copy Desk",
+    "overview": "Every AI draft is a proof lying on an editor's desk. The interface is cool newsprint (#F0F0EB) with whiter proof slips on it, ink-black type, and a single blue editing pencil for actions and focus. Structure comes from hairline rules and tonal steps between paper and slip, not from boxes and shadows. It is a working tool for long sessions, in daylight: dense, quiet, legible.\n\nThe build is light only, by decision: the scene is a daylight office, so color-scheme: light is set and no dark theme exists. The serif face appears only where words are being edited or read as copy; everything else is the grotesk. Icons are authored SVG that borrow proofreader's marks.",
+    "keyCharacteristics": [
+      "Newsprint ground, proof-slip surfaces, hairline dividers.",
+      "One accent (pencil blue) for every action and focus ring; red is reserved for urgency, rejection, errors.",
+      "Two faces with a strict job split: grotesk for interface, serif for edited words.",
+      "Flat at rest; one soft slip shadow on the draft and the home specimen only.",
+      "Tight corners (3px default).",
+      "Priority and status always carry a word, never color alone."
+    ],
+    "rules": [
+      { "name": "The One Pencil Rule", "body": "Blue means \"you can act here\" or \"you are here\". It is the only chromatic accent for interaction.", "section": "colors" },
+      { "name": "The Red Is a Verdict Rule", "body": "Proof red appears only for urgent, reject and errors. Never for decoration or a second brand color.", "section": "colors" },
+      { "name": "The Wash Pairing Rule", "body": "Every semantic ink pairs with its own wash for backgrounds; do not put a semantic ink on paper-colored chips outside this pairing.", "section": "colors" },
+      { "name": "The Serif Is for Edited Words Rule", "body": "Source Serif 4 is used only for message bodies, drafts and the textareas where copy is written. Never for headings, labels or buttons.", "section": "typography" },
+      { "name": "The Tight Headings Rule", "body": "Headings are bold with negative tracking and text-balance; body copy stays untracked. Prose measure is capped (46-60ch) where it runs long.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Panels, rows and inputs carry a hairline, not a shadow. The slip shadow is reserved for the single proof under review on a screen.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use pencil (#2742D1) for every primary action, focus ring and selection, and nothing else.",
+      "Do separate content with 1px hairlines (rule) and the paper/slip tonal step before reaching for a shadow.",
+      "Do set customer messages, AI drafts and copy textareas in Source Serif 4 at 17px with relaxed leading.",
+      "Do pair color with a word or mark (priority ticks plus label, status chip text).",
+      "Do keep controls at 36px on desktop and 44px on phones, with 16px field text on phones.",
+      "Do wrap entrance motion in motion-safe: and keep to the single 300ms land."
+    ],
+    "donts": [
+      "Don't use proof red for anything but urgent, reject and errors.",
+      "Don't use the serif for headings, buttons, labels or navigation.",
+      "Don't add dark mode or dark surfaces; the system is light by decision.",
+      "Don't add rounded-pill chips, soft stacked cards, gradient fills, or a sparkle/AI-glow treatment for AI features.",
+      "Don't use stock icon sets; extend Icons.tsx in the same 1.7 stroke, 24px grid.",
+      "Don't put the slip shadow on ordinary panels or rows."
+    ]
+  }
+}

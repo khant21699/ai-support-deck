@@ -4,3 +4,7 @@
 .env.*
 *.env
 !.env.example
+
+# Impeccable review screenshots and decision-page logs are working files, not source.
+.impeccable/review/
+.impeccable/questions/

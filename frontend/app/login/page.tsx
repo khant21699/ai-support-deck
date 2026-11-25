@@ -27,18 +27,48 @@ export default function LoginPage() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="card mx-auto max-w-sm space-y-4">
-      <h1 className="text-xl font-semibold">Agent login</h1>
-      <div>
-        <label className="label" htmlFor="email">Email</label>
-        <input id="email" className="input" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-      </div>
-      <div>
-        <label className="label" htmlFor="password">Password</label>
-        <input id="password" className="input" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
-      </div>
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      <button className="btn-primary w-full" disabled={busy}>{busy ? "Signing in…" : "Sign in"}</button>
-    </form>
+    <div className="mx-auto max-w-sm py-4 md:py-14">
+      <h1 className="text-3xl font-bold tracking-tight">Agent login</h1>
+      <p className="mt-2 text-muted">Sign in to work the inbox and review AI drafts.</p>
+
+      <form onSubmit={onSubmit} className="panel mt-6 space-y-5 p-5 md:p-6">
+        <div>
+          <label className="label" htmlFor="email">
+            Email
+          </label>
+          <input
+            id="email"
+            className="field"
+            type="email"
+            autoComplete="username"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="label" htmlFor="password">
+            Password
+          </label>
+          <input
+            id="password"
+            className="field"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+        {error && (
+          <p role="alert" className="alert-error">
+            {error}
+          </p>
+        )}
+        <button className="btn-primary w-full" disabled={busy}>
+          {busy ? "Signing in…" : "Sign in"}
+        </button>
+      </form>
+    </div>
   );
 }

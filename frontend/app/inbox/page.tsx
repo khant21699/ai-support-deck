@@ -2,84 +2,226 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import Badge from "@/components/Badge";
+import { Plain, PriorityMark, StatusChip } from "@/components/Badge";
+import { SearchIcon } from "@/components/Icons";
 import { api } from "@/lib/api";
+import { dateTime, label, timeAgo } from "@/lib/format";
 import type { TicketListItem } from "@/lib/types";
 
-const PAGE = 25;
+const PAGE_SIZE = 25;
+const CATEGORIES = ["billing", "technical", "account", "shipping", "feature_request", "other"];
+const NO_FILTERS = { status: "", priority: "", category: "", q: "" };
+
+// Column widths on laptops: priority, subject, category, status, age.
+const COLUMNS = "xl:grid-cols-[120px_minmax(0,1fr)_140px_100px_96px]";
 
 export default function InboxPage() {
-  const [filters, setFilters] = useState({ status: "", priority: "", category: "", q: "" });
+  const [filters, setFilters] = useState(NO_FILTERS);
+  const [search, setSearch] = useState("");
   const [offset, setOffset] = useState(0);
   const [data, setData] = useState<{ items: TicketListItem[]; total: number } | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Wait for a pause in typing before searching.
   useEffect(() => {
-    const params = new URLSearchParams({ limit: String(PAGE), offset: String(offset) });
-    Object.entries(filters).forEach(([k, v]) => v && params.set(k, v));
+    const timer = setTimeout(() => {
+      setOffset(0);
+      setFilters((f) => (f.q === search ? f : { ...f, q: search }));
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
+    const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(offset) });
+    Object.entries(filters).forEach(([key, value]) => value && params.set(key, value));
+    setLoading(true);
     api<{ items: TicketListItem[]; total: number }>(`/tickets?${params}`)
-      .then(setData)
-      .catch((e) => setError(e.message));
+      .then((result) => {
+        setData(result);
+        setError(null);
+      })
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
   }, [filters, offset]);
 
-  const set = (k: keyof typeof filters) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const choose = (key: "status" | "priority" | "category") => (e: React.ChangeEvent<HTMLSelectElement>) => {
     setOffset(0);
-    setFilters({ ...filters, [k]: e.target.value });
+    setFilters({ ...filters, [key]: e.target.value });
   };
 
+  const isFiltered = Object.values(filters).some(Boolean);
+  const from = data && data.total > 0 ? offset + 1 : 0;
+  const to = data ? Math.min(offset + PAGE_SIZE, data.total) : 0;
+
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">Inbox</h1>
-      <div className="flex flex-wrap gap-2">
-        <input className="input max-w-xs" placeholder="Search subject…" value={filters.q} onChange={set("q")} />
-        <select className="input max-w-[160px]" value={filters.status} onChange={set("status")}>
-          <option value="">All statuses</option><option>new</option><option>open</option><option>resolved</option>
-        </select>
-        <select className="input max-w-[160px]" value={filters.priority} onChange={set("priority")}>
-          <option value="">All priorities</option><option>urgent</option><option>high</option><option>normal</option><option>low</option>
-        </select>
-        <select className="input max-w-[180px]" value={filters.category} onChange={set("category")}>
-          <option value="">All categories</option>
-          {["billing", "technical", "account", "shipping", "feature_request", "other"].map((c) => <option key={c}>{c}</option>)}
-        </select>
+    <div>
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <h1 className="text-3xl font-bold tracking-tight">Inbox</h1>
+        <p className="text-sm text-muted" aria-live="polite">
+          {data ? `${data.total} ${data.total === 1 ? "ticket" : "tickets"}${isFiltered ? " match" : ""}` : ""}
+        </p>
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
-
-      <div className="card overflow-x-auto p-0">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b bg-slate-50 text-slate-500">
-            <tr>
-              <th className="px-4 py-2">Subject</th><th className="px-4 py-2">Category</th>
-              <th className="px-4 py-2">Priority</th><th className="px-4 py-2">Status</th><th className="px-4 py-2">Created</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data?.items.map((t) => (
-              <tr key={t.id} className="border-b last:border-0 hover:bg-slate-50">
-                <td className="px-4 py-2">
-                  <Link href={`/tickets/${t.id}`} className="font-medium hover:underline">{t.subject}</Link>
-                  <div className="text-xs text-slate-500">{t.customer_email}</div>
-                </td>
-                <td className="px-4 py-2"><Badge value={t.category} /></td>
-                <td className="px-4 py-2"><Badge value={t.priority} /></td>
-                <td className="px-4 py-2"><Badge value={t.status} /></td>
-                <td className="px-4 py-2 text-slate-500">{new Date(t.created_at).toLocaleString()}</td>
-              </tr>
+      <form role="search" className="mt-5 grid grid-cols-2 gap-2 lg:grid-cols-[minmax(0,1fr)_150px_150px_170px]" onSubmit={(e) => e.preventDefault()}>
+        <div className="relative col-span-2 lg:col-span-1">
+          <SearchIcon size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+          <label htmlFor="search" className="sr-only">
+            Search subjects
+          </label>
+          <input
+            id="search"
+            type="search"
+            className="field pl-9"
+            placeholder="Search subjects"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <div>
+          <label htmlFor="status" className="sr-only">
+            Status
+          </label>
+          <select id="status" className="field" value={filters.status} onChange={choose("status")}>
+            <option value="">Any status</option>
+            <option value="new">New</option>
+            <option value="open">Open</option>
+            <option value="resolved">Resolved</option>
+          </select>
+        </div>
+        <div>
+          <label htmlFor="priority" className="sr-only">
+            Priority
+          </label>
+          <select id="priority" className="field" value={filters.priority} onChange={choose("priority")}>
+            <option value="">Any priority</option>
+            {["urgent", "high", "normal", "low"].map((p) => (
+              <option key={p} value={p}>
+                {label(p)}
+              </option>
             ))}
-            {data && data.items.length === 0 && (
-              <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-500">No tickets match.</td></tr>
+          </select>
+        </div>
+        <div className="col-span-2 lg:col-span-1">
+          <label htmlFor="category" className="sr-only">
+            Category
+          </label>
+          <select id="category" className="field" value={filters.category} onChange={choose("category")}>
+            <option value="">Any category</option>
+            {CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {label(c)}
+              </option>
+            ))}
+          </select>
+        </div>
+      </form>
+
+      {error && (
+        <p role="alert" className="alert-error mt-4">
+          Could not load tickets: {error}
+        </p>
+      )}
+
+      <div className="panel mt-4 overflow-hidden">
+        <div aria-hidden="true" className={`hidden gap-x-4 border-b border-rule px-4 py-2 text-[12px] font-semibold text-muted xl:grid ${COLUMNS}`}>
+          <span>Priority</span>
+          <span>Ticket</span>
+          <span>Category</span>
+          <span>Status</span>
+          <span>Age</span>
+        </div>
+
+        {loading && !data ? (
+          <ul aria-label="Loading tickets" className="divide-y divide-rule">
+            {Array.from({ length: 7 }).map((_, i) => (
+              <li key={i} className="px-4 py-4">
+                <div className="h-4 w-2/3 rounded bg-rule motion-safe:animate-pulse" />
+                <div className="mt-2.5 h-3 w-1/3 rounded bg-rule/70 motion-safe:animate-pulse" />
+              </li>
+            ))}
+          </ul>
+        ) : data && data.items.length === 0 ? (
+          <div className="px-4 py-14 text-center">
+            <p className="font-semibold">{isFiltered ? "No tickets match these filters" : "No tickets yet"}</p>
+            <p className="mt-1 text-muted">
+              {isFiltered ? "Try a different search or clear the filters." : "New requests from the contact form will appear here."}
+            </p>
+            {isFiltered && (
+              <button
+                className="btn-secondary mt-4"
+                onClick={() => {
+                  setSearch("");
+                  setOffset(0);
+                  setFilters(NO_FILTERS);
+                }}
+              >
+                Clear filters
+              </button>
             )}
-          </tbody>
-        </table>
+          </div>
+        ) : (
+          <ul className={`divide-y divide-rule transition-opacity ${loading ? "opacity-60" : ""}`}>
+            {data?.items.map((t) => (
+              <li key={t.id}>
+                <Link
+                  href={`/tickets/${t.id}`}
+                  className={`grid gap-x-4 gap-y-2 px-4 py-3.5 transition-colors hover:bg-pencil-wash/50 focus-visible:outline-offset-[-2px] xl:items-center ${COLUMNS}`}
+                >
+                  <div className="min-w-0 xl:col-start-2 xl:row-start-1">
+                    <p className="truncate font-semibold">{t.subject}</p>
+                    <p className="flex flex-wrap items-center gap-x-2 text-[13px] text-muted">
+                      <span className="truncate">{t.customer_email}</span>
+                      {t.ai_status === "pending" && (
+                        <span className="inline-flex items-center gap-1.5 text-pencil-dark">
+                          <span className="size-1.5 rounded-full bg-pencil motion-safe:animate-pulse" aria-hidden="true" />
+                          AI drafting
+                        </span>
+                      )}
+                      {t.ai_status === "failed" && <span className="font-semibold text-proof">AI failed</span>}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 xl:contents">
+                    {t.priority || t.category ? (
+                      <>
+                        <span className="xl:col-start-1 xl:row-start-1">
+                          <PriorityMark value={t.priority} />
+                        </span>
+                        <span className="xl:col-start-3 xl:row-start-1">
+                          <Plain value={t.category} />
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-[13px] text-muted xl:col-start-1 xl:col-span-2 xl:row-start-1">
+                        {t.ai_status === "failed" ? "Not triaged" : "Awaiting triage"}
+                      </span>
+                    )}
+                    <span className="xl:col-start-4 xl:row-start-1">
+                      <StatusChip value={t.status} />
+                    </span>
+                    <time dateTime={t.created_at} title={dateTime(t.created_at)} className="text-[13px] tabular-nums text-muted xl:col-start-5 xl:row-start-1">
+                      {timeAgo(t.created_at)}
+                    </time>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
-      {data && (
-        <div className="flex items-center justify-between text-sm text-slate-600">
-          <span>{data.total} tickets</span>
+      {data && data.total > PAGE_SIZE && (
+        <div className="mt-4 flex items-center justify-between text-sm text-muted">
+          <span className="tabular-nums">
+            {from}&ndash;{to} of {data.total}
+          </span>
           <div className="flex gap-2">
-            <button className="btn-ghost" disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - PAGE))}>Previous</button>
-            <button className="btn-ghost" disabled={offset + PAGE >= data.total} onClick={() => setOffset(offset + PAGE)}>Next</button>
+            <button className="btn-secondary" disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}>
+              Previous
+            </button>
+            <button className="btn-secondary" disabled={offset + PAGE_SIZE >= data.total} onClick={() => setOffset(offset + PAGE_SIZE)}>
+              Next
+            </button>
           </div>
         </div>
       )}
