@@ -6,18 +6,28 @@ import { useEffect, useState } from "react";
 import { api, post } from "@/lib/api";
 import { label } from "@/lib/format";
 import type { User } from "@/lib/types";
-import { InboxIcon, LogOutIcon, PilcrowIcon, TallyIcon } from "./Icons";
+import { InboxIcon, LogOutIcon, PilcrowIcon, TallyIcon, UsersIcon } from "./Icons";
 import Wordmark from "./Wordmark";
 
 // Customers and visitors see a light top bar. Signed-in agents get the working layout: a left rail
 // on laptops and a bottom tab bar on phones.
 const PUBLIC_PATHS = ["/", "/submit", "/login"];
 
-const NAV = [
+type NavItem = {
+  href: string;
+  name: string;
+  tab?: string; // shorter label for the phone tab bar, where four tabs share the width
+  Icon: (props: { className?: string; size?: number }) => React.ReactElement;
+};
+
+const NAV: NavItem[] = [
   { href: "/inbox", name: "Inbox", Icon: InboxIcon },
-  { href: "/kb", name: "Knowledge base", Icon: PilcrowIcon },
+  { href: "/kb", name: "Knowledge base", tab: "Knowledge", Icon: PilcrowIcon },
   { href: "/dashboard", name: "Dashboard", Icon: TallyIcon },
 ];
+
+// Only admins manage the team, so only they see this item.
+const TEAM_NAV: NavItem = { href: "/team", name: "Team", Icon: UsersIcon };
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -27,6 +37,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     api<User>("/auth/me").then(setUser).catch(() => setUser(null));
   }, [pathname]);
+
+  const nav = user?.role === "admin" ? [...NAV, TEAM_NAV] : NAV;
 
   async function logout() {
     await post("/auth/logout");
@@ -78,7 +90,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <Wordmark href="/inbox" />
           </div>
           <nav aria-label="Main" className="mt-8 flex flex-col gap-1">
-            {NAV.map(({ href, name, Icon }) => {
+            {nav.map(({ href, name, Icon }) => {
               const active = pathname.startsWith(href) || (href === "/inbox" && pathname.startsWith("/tickets"));
               return (
                 <Link
@@ -123,21 +135,21 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       <nav
         aria-label="Main"
-        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 border-t border-rule bg-slip pb-[env(safe-area-inset-bottom)] lg:hidden"
+        className={`fixed inset-x-0 bottom-0 z-40 grid border-t border-rule bg-slip pb-[env(safe-area-inset-bottom)] lg:hidden ${nav.length > 3 ? "grid-cols-4" : "grid-cols-3"}`}
       >
-        {NAV.map(({ href, name, Icon }) => {
+        {nav.map(({ href, name, tab, Icon }) => {
           const active = pathname.startsWith(href) || (href === "/inbox" && pathname.startsWith("/tickets"));
           return (
             <Link
               key={href}
               href={href}
               aria-current={active ? "page" : undefined}
-              className={`flex min-h-14 flex-col items-center justify-center gap-0.5 text-[12px] font-semibold no-underline ${
+              className={`flex min-h-14 flex-col items-center justify-center gap-0.5 whitespace-nowrap text-[12px] font-semibold no-underline ${
                 active ? "text-pencil" : "text-muted"
               }`}
             >
               <Icon />
-              {name}
+              {tab ?? name}
             </Link>
           );
         })}

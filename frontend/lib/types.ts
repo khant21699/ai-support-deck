@@ -2,6 +2,8 @@
 
 export type User = { id: string; email: string; role: "admin" | "agent" };
 
+export type UserListItem = User & { created_at: string };
+
 export type Citation = { marker: string; article_id: number; article_title: string; snippet: string };
 
 export type Draft = {

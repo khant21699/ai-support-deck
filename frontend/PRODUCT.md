@@ -31,8 +31,8 @@ AI drafts that are accountable: every reply shows the knowledge base passages it
 
 ## Capabilities and Constraints
 
-- Pages today: home, public ticket form (`/submit`), agent login, inbox with filters and paging, ticket detail with draft review, knowledge base editor, dashboard with charts. No marketing site beyond the home page.
-- Roles: `agent` and `admin` (only admins edit the knowledge base).
+- Pages today: home, public ticket form (`/submit`), agent login, inbox with filters and paging, ticket detail with draft review, knowledge base (read-only for agents), dashboard with charts, and Team (admins only). No marketing site beyond the home page.
+- Roles: anonymous visitor (can only submit a ticket), `agent` (works tickets, reviews drafts, reads the knowledge base) and `admin` (everything an agent does, plus adding agents and other admins, removing agents (never admins) on the Team page, and editing the knowledge base). Agents never see the Team item or the knowledge base editor.
 - Existing stack to keep: Next.js 14 App Router, React 18, TypeScript, Tailwind CSS 3, Recharts. The frontend has no backend of its own and must keep working with the current API shapes (`lib/types.ts`).
 - Real states that exist and need good design: AI pending, AI failed, draft with no knowledge base answer, draft with citations, polling gave up, empty inbox, API errors, loading.
 - Ticket categories: billing, technical, account, shipping, feature request, other. Priorities: low, normal, high, urgent. Sentiment: positive, neutral, negative. Ticket statuses: new, open, resolved.

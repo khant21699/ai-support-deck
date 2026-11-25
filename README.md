@@ -20,7 +20,7 @@ Next.js (web)  ──►  FastAPI (api)  ──►  Postgres (+ pgvector for sea
 - Spam protection: each IP address can submit 5 tickets per 10 minutes.
 
 **For agents**
-- Login with roles: `agent` (works tickets) and `admin` (also manages the knowledge base). The session is an httpOnly cookie.
+- Login with two roles, `agent` and `admin` (see **Who can do what** below). The session is an httpOnly cookie.
 - An inbox with filters (status, priority, category), subject search and paging.
 - A ticket page with the full conversation, AI labels (category, priority, sentiment) and a manual reply box.
 - A draft review panel: edit the AI draft, then approve and send, send your edited version, reject, or regenerate.
@@ -39,8 +39,13 @@ Next.js (web)  ──►  FastAPI (api)  ──►  Postgres (+ pgvector for sea
   or Claude. Chat and embedding models are set separately, and each draft records which model wrote it.
 - An accuracy check (`make eval`) that scores the triage against sample tickets.
 
+**Team (admins)**
+- A Team page lists everyone with an account. An admin can add an agent or another admin (email, password with a
+  Generate button, and a role) and can remove an agent, with a confirmation. A removed agent is signed out at once and
+  their tickets stay, unassigned. Admins can't be removed, so the app can never be left without one.
+
 **Knowledge base**
-- Admins create, edit and delete articles. Saving splits the article into pieces and embeds them for search.
+- Admins create, edit and delete articles. Agents can read them. Saving splits the article into pieces and embeds them for search.
 - `make reindex` re-embeds everything after you change the embedding model.
 
 **Dashboard**
@@ -54,6 +59,21 @@ Next.js (web)  ──►  FastAPI (api)  ──►  Postgres (+ pgvector for sea
   step of the ticket pipeline. `LOG_LEVEL=DEBUG` adds prompts and answers.
 - One-command local setup with Docker Compose, demo data (`make seed`), 24 automated tests, and a GitHub Actions workflow.
 - Secrets stay out of git: every `.env` file is ignored, and only the `.env.example` templates are committed.
+
+## Who can do what
+
+| | Anonymous visitor | Agent | Admin |
+|---|---|---|---|
+| Submit a ticket | yes | yes | yes |
+| See tickets, review and send AI drafts | no | yes | yes |
+| See the dashboard | no | yes | yes |
+| Read the knowledge base | no | yes | yes |
+| Add, edit and delete knowledge base articles | no | no | yes |
+| See the team, add agents and add other admins | no | no | yes |
+| Remove an agent | no | no | yes |
+
+The API enforces this on every request; the interface only hides what you can't use. The first admin comes from
+`make seed` (local) or `migrations/seed.sql` (deployed). After that, admins add agents and other admins on the Team page.
 
 ## Run it
 
@@ -203,4 +223,5 @@ python -m scripts.reindex
 
 ## Not built yet
 
-Email in and out, multiple companies, SLAs, attachments, real-time updates.
+Email in and out, multiple companies, SLAs, attachments, real-time updates. Accounts: changing or resetting a
+password, and removing or demoting an admin.

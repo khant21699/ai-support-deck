@@ -102,3 +102,11 @@ export const AlertIcon = (p: IconProps) => (
     <path d="M12 10v4.5M12 17.2v.1" />
   </Svg>
 );
+
+/** Two heads and shoulders: the team. */
+export const UsersIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="9" cy="8.5" r="3" />
+    <path d="M3.5 19c0-3.1 2.4-5 5.5-5s5.5 1.9 5.5 5M15.5 5.7a3 3 0 0 1 0 5.6M17.5 14.4c2 .6 3.5 2.2 3.5 4.6" />
+  </Svg>
+);

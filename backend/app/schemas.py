@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 Category = Literal["billing", "technical", "account", "shipping", "feature_request", "other"]
 Priority = Literal["low", "normal", "high", "urgent"]
@@ -23,6 +23,26 @@ class UserOut(ORM):
     id: uuid.UUID
     email: str
     role: str
+
+
+# ---------- team (admin only) ----------
+class UserCreate(BaseModel):
+    """What an admin sends to add a person. The role defaults to "agent"."""
+
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=72)
+    role: Literal["agent", "admin"] = "agent"
+
+    @field_validator("password")
+    @classmethod
+    def password_fits_bcrypt(cls, value: str):
+        if len(value.encode()) > 72:  # bcrypt only reads the first 72 bytes
+            raise ValueError("Password is too long (72 bytes at most)")
+        return value
+
+
+class UserListItem(UserOut):
+    created_at: datetime
 
 
 # ---------- tickets ----------

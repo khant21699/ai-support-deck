@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { CaretIcon } from "@/components/Icons";
 import { api, post } from "@/lib/api";
 import { shortDate } from "@/lib/format";
-import type { KbArticle } from "@/lib/types";
+import type { KbArticle, User } from "@/lib/types";
 
 const EMPTY = { title: "", body: "" };
 
@@ -13,6 +13,7 @@ export default function KbPage() {
   const [editing, setEditing] = useState<{ id?: number; title: string; body: string }>(EMPTY);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false); // agents can read the knowledge base; only admins edit it
 
   const load = useCallback(
     () =>
@@ -22,6 +23,9 @@ export default function KbPage() {
     [],
   );
   useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    api<User>("/auth/me").then((u) => setIsAdmin(u.role === "admin")).catch(() => setIsAdmin(false));
+  }, []);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -60,10 +64,12 @@ export default function KbPage() {
     <div>
       <h1 className="text-3xl font-bold tracking-tight">Knowledge base</h1>
       <p className="mt-2 max-w-[60ch] text-muted">
-        The articles the AI cites when it drafts a reply. Saving an article splits it up and indexes it for search.
+        {isAdmin
+          ? "The articles the AI cites when it drafts a reply. Saving an article splits it up and indexes it for search."
+          : "The articles the AI cites when it drafts a reply. Only admins can add or edit them."}
       </p>
 
-      <div className="mt-6 grid gap-8 xl:grid-cols-[minmax(0,1fr)_420px] xl:items-start">
+      <div className={`mt-6 grid gap-8 ${isAdmin ? "xl:grid-cols-[minmax(0,1fr)_420px] xl:items-start" : "max-w-3xl"}`}>
         <section aria-label="Articles">
           {articles === null ? (
             <div className="space-y-3" role="status">
@@ -78,7 +84,7 @@ export default function KbPage() {
           ) : articles.length === 0 ? (
             <div className="panel px-5 py-12 text-center">
               <p className="font-semibold">No articles yet</p>
-              <p className="mt-1 text-muted">Add the first article so the AI has something to cite.</p>
+              <p className="mt-1 text-muted">{isAdmin ? "Add the first article so the AI has something to cite." : "An admin can add the first article."}</p>
             </div>
           ) : (
             <ul className="divide-y divide-rule border-y border-rule">
@@ -89,15 +95,17 @@ export default function KbPage() {
                       <h2 className="font-semibold">{a.title}</h2>
                       <p className="text-[13px] text-muted">Updated {shortDate(a.updated_at)}</p>
                     </div>
-                    <div className="flex shrink-0 gap-1">
-                      <button className="btn-quiet" onClick={() => startEditing(a)} aria-label={`Edit ${a.title}`}>
-                        <CaretIcon size={15} />
-                        Edit
-                      </button>
-                      <button className="btn-quiet hover:text-proof" onClick={() => remove(a)} aria-label={`Delete ${a.title}`}>
-                        Delete
-                      </button>
-                    </div>
+                    {isAdmin && (
+                      <div className="flex shrink-0 gap-1">
+                        <button className="btn-quiet" onClick={() => startEditing(a)} aria-label={`Edit ${a.title}`}>
+                          <CaretIcon size={15} />
+                          Edit
+                        </button>
+                        <button className="btn-quiet hover:text-proof" onClick={() => remove(a)} aria-label={`Delete ${a.title}`}>
+                          Delete
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <p className="mt-2 line-clamp-2 text-muted">{a.body}</p>
                 </li>
@@ -106,6 +114,7 @@ export default function KbPage() {
           )}
         </section>
 
+        {isAdmin && (
         <form id="kb-form" onSubmit={save} className="panel space-y-4 p-5 xl:sticky xl:top-6">
           <h2 className="text-lg font-bold">{editing.id ? "Edit article" : "New article"}</h2>
           <div>
@@ -145,6 +154,7 @@ export default function KbPage() {
           </div>
           <p className="text-[13px] text-muted">Only admins can add, edit or delete articles.</p>
         </form>
+        )}
       </div>
     </div>
   );

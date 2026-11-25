@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.core.logs import setup_logging
-from app.routers import auth, dashboard, drafts, kb, tickets
+from app.routers import auth, dashboard, drafts, kb, tickets, users
 
 setup_logging()
 log = logging.getLogger("app.api")
@@ -54,6 +54,7 @@ app.include_router(tickets.router)
 app.include_router(drafts.router)
 app.include_router(kb.router)
 app.include_router(dashboard.router)
+app.include_router(users.router)
 
 
 @app.get("/health")
