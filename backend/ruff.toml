@@ -1,0 +1,9 @@
+line-length = 120
+target-version = "py312"
+
+[lint]
+select = ["E", "F", "I", "B"]
+ignore = [
+  "B008",  # FastAPI Depends() in defaults is idiomatic
+  "E501",  # long seed/prompt strings are fine
+]

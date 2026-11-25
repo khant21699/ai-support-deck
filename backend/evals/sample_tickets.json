@@ -1,0 +1,12 @@
+[
+  {"subject": "Charged twice for my subscription", "body": "My card shows two charges for this month. Please refund the duplicate.", "category": "billing", "priority": "high"},
+  {"subject": "Password reset email never arrives", "body": "I requested a reset link three times and nothing arrives, even in spam.", "category": "account", "priority": "high"},
+  {"subject": "Where is my package?", "body": "Ordered 8 days ago and there is still no tracking number.", "category": "shipping", "priority": "normal"},
+  {"subject": "API is down for us", "body": "All requests to your API return 500 since 09:00. Our production checkout is failing.", "category": "technical", "priority": "urgent"},
+  {"subject": "Please add dark mode", "body": "It would be great to have a dark theme for night use.", "category": "feature_request", "priority": "low"},
+  {"subject": "Update the address on my invoices", "body": "We moved offices. Can you change the billing address on future invoices?", "category": "billing", "priority": "normal"},
+  {"subject": "Lost my phone and 2FA codes", "body": "I got a new phone and cannot sign in because two-factor needs the old device.", "category": "account", "priority": "high"},
+  {"subject": "Upload fails for large files", "body": "PDFs above 10MB freeze the page and then show an error.", "category": "technical", "priority": "normal"},
+  {"subject": "Partnership question", "body": "Who is the right person to talk to about a reseller partnership?", "category": "other", "priority": "low"},
+  {"subject": "Security issue: I can see another user's data", "body": "After logging in I saw someone else's invoices. This looks like a data leak.", "category": "technical", "priority": "urgent"}
+]

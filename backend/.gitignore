@@ -1,0 +1,6 @@
+# Environment files hold real keys and passwords, so none of them are committed.
+# Only .env.example (no secrets) is tracked.
+.env
+.env.*
+*.env
+!.env.example
