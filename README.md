@@ -145,7 +145,8 @@ backend/app/
   routers/           API endpoints: auth, tickets, drafts, kb, dashboard
   services/          triage, retrieval (search), drafting, chunking
   core/              settings, database connection, login helpers
-backend/scripts/     seed.py (demo data), reindex.py
+backend/migrations/  table.sql (all tables) and seed.sql (admin login, sample knowledge base) for deployment
+backend/scripts/     seed.py (demo data), reindex.py, export_schema.py (writes table.sql)
 backend/evals/       checks how accurate triage is (make eval)
 backend/tests/       automated tests (make test)
 frontend/app/        pages: submit, login, inbox, tickets/[id], kb, dashboard
@@ -172,8 +173,33 @@ Docker Compose is only for working on your own computer. For a public site:
 | Database | Neon or Supabase (run `CREATE EXTENSION vector;`) |
 
 On the backend host set `DATABASE_URL`, `SECRET_KEY`, `CORS_ORIGINS` (your Vercel address) and
-`COOKIE_SECURE=true`, then run `alembic upgrade head` once. Ollama is not available there, so also set
-`LLM_*` and `EMBED_*` to a hosted provider.
+`COOKIE_SECURE=true`. Ollama is not available there, so also set `LLM_*` and `EMBED_*` to a hosted provider.
+
+### Setting up the production database
+
+Two plain SQL files in `backend/migrations/` set up an empty Postgres database. You need `psql` and the
+database's connection URL (`DATABASE_URL` below, in the plain `postgresql://...` form).
+
+```bash
+cd backend
+
+# 1. Create every table, index and the pgvector extension (safe to run again).
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f migrations/table.sql
+
+# 2. Create your admin login and five sample knowledge base articles.
+psql "$DATABASE_URL" -v admin_email=you@example.com -v admin_password='choose a long password' -f migrations/seed.sql
+
+# 3. The knowledge base text has no search data yet. Embed it (needs your embedding model reachable).
+python -m scripts.reindex
+```
+
+- `seed.sql` has no default password: it refuses to run without `-v admin_password=...`, and stores only a bcrypt hash.
+- Optional: add `-v agent_password='...'` for a second login with the agent role, or `-v demo_tickets=1` for 60 fake
+  tickets so the dashboard has data (use that for a demo site, not a real one).
+- `table.sql` is generated from the models. After changing a model, run `make schema` and commit the result.
+  A test fails if the file falls behind the models.
+- It also tells Alembic the schema is already at the first migration, so later changes can use `alembic upgrade head`.
+  If you skip the SQL files and use Alembic alone, `alembic upgrade head` builds the same tables.
 
 ## Not built yet
 

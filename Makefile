@@ -1,4 +1,4 @@
-.PHONY: models up down seed reindex test lint eval logs
+.PHONY: models up down seed schema reindex test lint eval logs
 
 LLM_MODEL ?= qwen2.5:7b
 EMBED_MODEL ?= nomic-embed-text
@@ -6,6 +6,9 @@ EMBED_MODEL ?= nomic-embed-text
 models:  ## pull the local Ollama models (override: make models LLM_MODEL=llama3.1:8b)
 	ollama pull $(LLM_MODEL)
 	ollama pull $(EMBED_MODEL)
+
+schema:  ## regenerate backend/migrations/table.sql after changing a model
+	docker compose run --rm api python -m scripts.export_schema
 
 reindex:  ## re-embed the knowledge base after changing the embedding model
 	docker compose run --rm api python -m scripts.reindex
